@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 import { update } from './update'
+import { testConnection } from '../database'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -81,7 +82,21 @@ async function createWindow() {
   update(win)
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  // Test database connection on app start
+  testConnection()
+  
+  createWindow()
+
+  app.on('activate', () => {
+    const allWindows = BrowserWindow.getAllWindows()
+    if (allWindows.length) {
+      allWindows[0].focus()
+    } else {
+      createWindow()
+    }
+  })
+})
 
 app.on('window-all-closed', () => {
   win = null
